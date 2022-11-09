@@ -12,7 +12,7 @@ func connectDatabase() {
 	//Connect to database
 }
 
-func connectQueueText() {
+func connectQueueText() (interface{}, interface{}) {
 	/*
 	* Queue 1
 	 */
@@ -49,9 +49,11 @@ func connectQueueText() {
 		fmt.Println(err)
 	}
 
+	return ch, err
+
 }
 
-func connectQueueUserStories() {
+func connectQueueUserStories() (interface{}, interface{}) {
 	/*
 	* Queue 2
 	 */
@@ -88,20 +90,37 @@ func connectQueueUserStories() {
 		fmt.Println(err)
 	}
 
+	return ch, err
 }
 
 func homepage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Homepage Endpoint")
 }
 
-func handleRequests() {
+func handleRequests(textChannel interface{}, errText interface{}, userChannel interface{}, errUser interface{}) {
 	http.HandleFunc("/user", homepage)
 	log.Fatal(http.ListenAndServe(":8001", nil))
+	// attempt to publish a message to the queue!
+	errText = textChannel.Publish(
+		"",
+		"TestQueue",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte("Hello World"),
+		},
+	)
+
+	if errText != nil {
+		fmt.Println(errText)
+	}
+	fmt.Println("Successfully Published Message to Queue")
 }
 
 func main2() {
 	connectDatabase()
-	connectQueueText()
-	connectQueueUserStories()
-	handleRequests()
+	textChannel, errText := connectQueueText()
+	userChannel, errUser := connectQueueUserStories()
+	handleRequests(textChannel, errText, userChannel, errUser)
 }

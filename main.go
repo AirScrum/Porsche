@@ -16,5 +16,5 @@ func handleRequests() {
 }
 
 func main() {
-	handleRequests()
+	start()
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"goserver/queuePackage"
 )
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -16,5 +17,7 @@ func handleRequests() {
 }
 
 func main() {
-	queuepackage.start()
+	fmt.Println("Server Started")
+	queuepackage.Start()
+	handleRequests()
 }

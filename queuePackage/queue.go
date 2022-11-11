@@ -16,7 +16,7 @@ var textChannel *amqp.Channel
 var userStories amqp.Queue
 var userStoriesChannel *amqp.Channel
 
-func start() {
+func Start() {
 	/*
 		Connection to RabbitMQ, TextChannel, and UserStoriesChannel
 	*/

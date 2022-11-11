@@ -11,7 +11,7 @@ import (
 
 var ctx context.Context
 var textQueue amqp.Queue
-var textChannel amqp.Channel
+var textChannel *amqp.Channel
 
 func start() {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")

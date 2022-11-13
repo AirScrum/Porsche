@@ -63,9 +63,22 @@ func Start() {
 
 	fmt.Println(ctx)
 
+	err = textChannel.PublishWithContext(ctx,
+		"",             // exchange
+		textQueue.Name, // routing key
+		false,          // mandatory
+		false,          // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte("msg"),
+		})
+	failOnError(err, "[textQueue] - Failed to publish a message to textQueue")
+	log.Printf("[textQueue] - [x] Sent %s\n", "msg")
+
 }
 
-func sendToTextQueue(msg string) {
+/*
+func SendToTextQueue(msg string) {
 
 	err := textChannel.PublishWithContext(ctx,
 		"",             // exchange
@@ -79,7 +92,7 @@ func sendToTextQueue(msg string) {
 	failOnError(err, "[textQueue] - Failed to publish a message to textQueue")
 	log.Printf("[textQueue] - [x] Sent %s\n", msg)
 
-}
+}*/
 
 func sendToUserStoriesQueue(msg string) {
 	/*

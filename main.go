@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	queuepackage "goserver/queuePackage"
 	"log"
 	"net/http"
-	"goserver/queuePackage"
 )
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +18,10 @@ func handleRequests() {
 
 func main() {
 	fmt.Println("Server Started")
-	queuepackage.Start()
+	queues := new(queuepackage.Queue)
+	queues = queuepackage.QueueInit()
+	queuepackage.SendToTextQueue(queues, "Hi")
+	//queuepackage.Start()
+	//queuepackage.SendToTextQueue("Test")
 	handleRequests()
 }

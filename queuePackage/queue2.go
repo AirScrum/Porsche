@@ -70,9 +70,9 @@ func QueueInit() *Queue {
 	return myQueues
 }
 
-func SendToTextQueue(myQueue *Queue, textid string, text string) {
+func SendToTextQueue(myQueue *Queue, textid string, text string, userid string) {
 
-	var msg string = textid + "$" + text
+	var msg string = textid + "$" + text + "$" + userid
 	err := myQueue.textChannel.PublishWithContext(myQueue.ctx,
 		"",                     // exchange
 		myQueue.textQueue.Name, // routing key
@@ -107,7 +107,8 @@ func ReceiveFromUserStoriesQueue(myQueue *Queue) {
 	go func() {
 		for d := range msgs {
 			fmt.Printf("Recieved Message: %s\n", d.Body)
-
+			// Save to database
+			// Send ID to Gateway
 		}
 	}()
 

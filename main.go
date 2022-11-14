@@ -12,11 +12,6 @@ type Message struct {
 		Textid string `json:"textid"`
 		Text string `json:"text"`
 }
-type Bird struct {
-	Species string
-	Description string
-  }
-
 func homepage(w http.ResponseWriter, r *http.Request) {
 	/*
 		Read the request body and parse it from JSON to Message Struct

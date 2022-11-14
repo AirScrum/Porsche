@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
 
 	"github.com/streadway/amqp"
 )
@@ -93,6 +91,7 @@ func connectQueueUserStories() (interface{}, interface{}) {
 	return ch, err
 }
 
+/*
 func homepage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Homepage Endpoint")
 }
@@ -117,10 +116,11 @@ func handleRequests(textChannel interface{}, errText interface{}, userChannel in
 	}
 	fmt.Println("Successfully Published Message to Queue")
 }
-
+*/
+/*
 func main2() {
 	connectDatabase()
 	textChannel, errText := connectQueueText()
 	userChannel, errUser := connectQueueUserStories()
 	handleRequests(textChannel, errText, userChannel, errUser)
-}
+}*/

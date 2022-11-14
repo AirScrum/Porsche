@@ -70,8 +70,9 @@ func QueueInit() *Queue {
 	return myQueues
 }
 
-func SendToTextQueue(myQueue *Queue, msg string) {
+func SendToTextQueue(myQueue *Queue, textid string, text string) {
 
+	var msg string = textid + "$" + text
 	err := myQueue.textChannel.PublishWithContext(myQueue.ctx,
 		"",                     // exchange
 		myQueue.textQueue.Name, // routing key
@@ -82,6 +83,32 @@ func SendToTextQueue(myQueue *Queue, msg string) {
 			Body:        []byte(msg),
 		})
 	failOnError(err, "[textQueue] - Failed to publish a message to textQueue")
+
 	log.Printf("[textQueue] - [x] Sent %s\n", msg)
+
+}
+
+func ReceiveFromUserStoriesQueue(myQueue *Queue) {
+
+	msgs, err := myQueue.userStoriesChannel.Consume(
+		myQueue.userStoriesQueue.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for d := range msgs {
+			fmt.Printf("Recieved Message: %s\n", d.Body)
+
+		}
+	}()
 
 }

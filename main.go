@@ -8,29 +8,41 @@ import (
 	"log"
 	"net/http"
 )
+
 type Message struct {
-		Textid string `json:"textid"`
-		Text string `json:"text"`
+	Textid string `json:"textid"`
+	Text   string `json:"text"`
 }
-type Bird struct {
-	Species string
-	Description string
-  }
+
+type Request struct {
+	Textid string `json:"textid"`
+}
+
+var queues = new(queuepackage.Queue)
 
 func homepage(w http.ResponseWriter, r *http.Request) {
 	/*
 		Read the request body and parse it from JSON to Message Struct
 	*/
 	defer r.Body.Close()
-    buf, err := ioutil.ReadAll(r.Body)
-    if err != nil {
-        panic(err)
-    }
-	fmt.Println(buf)
-	msg:= Message{} 
-	err = json.Unmarshal(buf,&msg)
-	fmt.Println(msg.Textid)
-	fmt.Println(msg.Text)
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	request := Request{}
+	err = json.Unmarshal(buf, &request)
+	if err != nil {
+		panic(err)
+	}
+
+	msg := Message{}
+
+	// Get corressponding text from the textid from database
+	msg.Textid = request.Textid
+	msg.Text = "Testing"
+
+	queuepackage.SendToTextQueue(queues, msg.Textid, msg.Text)
 	/*
 		TODO Read the textID from the database
 	*/
@@ -40,16 +52,14 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
+	fmt.Println("Server Started")
 	http.HandleFunc("/main", homepage)
-	log.Fatal(http.ListenAndServe(":8001", nil))
+	log.Fatal(http.ListenAndServe(":8002", nil))
 }
 
 func main() {
-	fmt.Println("Server Started")
-	queues := new(queuepackage.Queue)
 	queues = queuepackage.QueueInit()
-	queuepackage.SendToTextQueue(queues, "Hi")
-	//queuepackage.Start()
-	//queuepackage.SendToTextQueue("Test")
+	queuepackage.ReceiveFromUserStoriesQueue(queues)
 	handleRequests()
+
 }

@@ -25,27 +25,27 @@ func main() {
 	// with this channel open, we can then start to interact
 	// with the instance and declare Queues that we can publish and
 	// subscribe to
-	q, err := ch.QueueDeclare(
-		"TestQueue",
+	/*q, err := ch.QueueDeclare(
+		"userStoriesQueue",
 		false,
 		false,
 		false,
 		false,
 		nil,
-	)
+	)*/
 	// We can print out the status of our Queue here
 	// this will information like the amount of messages on
 	// the queue
-	fmt.Println(q)
+	//fmt.Println(q)
 	// Handle any errors if we were unable to create the queue
-	if err != nil {
-		fmt.Println(err)
-	}
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 
 	// attempt to publish a message to the queue!
 	err = ch.Publish(
 		"",
-		"TestQueue",
+		"userStoriesQueue",
 		false,
 		false,
 		amqp.Publishing{

@@ -72,7 +72,7 @@ func QueueInit() *Queue {
 
 func SendToTextQueue(myQueue *Queue, textid string, text string, userid string) {
 
-	var msg string = textid + "$" + text + "$" + userid
+	var msg string = textid + "$" + userid + "$" + text
 	err := myQueue.textChannel.PublishWithContext(myQueue.ctx,
 		"",                     // exchange
 		myQueue.textQueue.Name, // routing key

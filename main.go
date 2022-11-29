@@ -29,8 +29,6 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	fmt.Println(request.TextID)
-	fmt.Println(request.UserID)
 	msg := queuepackage.Message{}
 
 	// Get corresponding text from the TextID from database

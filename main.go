@@ -9,7 +9,6 @@ import (
 	"net/http"
 )
 
-var queues = new(queuepackage.Queue)
 var userStoriesQueue *queuepackage.IQueue
 var textQueue *queuepackage.IQueue
 

@@ -12,10 +12,12 @@ import (
 type Message struct {
 	Textid string `json:"textid"`
 	Text   string `json:"text"`
+	Userid string `json:"userid"`
 }
 
 type Request struct {
 	Textid string `json:"textid"`
+	Userid string `json:"userid"`
 }
 
 var queues = new(queuepackage.Queue)
@@ -36,13 +38,16 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	fmt.Println(request.Textid)
+	fmt.Println(request.Userid)
 	msg := Message{}
 
 	// Get corressponding text from the textid from database
 	msg.Textid = request.Textid
 	msg.Text = "Testing"
+	msg.Userid = request.Userid
 
-	queuepackage.SendToTextQueue(queues, msg.Textid, msg.Text)
+	queuepackage.SendToTextQueue(queues, msg.Textid, msg.Text, msg.Userid)
 	/*
 		TODO Read the textID from the database
 	*/

@@ -21,7 +21,8 @@ type Request struct {
 }
 
 var queues = new(queuepackage.Queue)
-
+var userStoriesQueue *queuepackage.IQueue
+var textQueue *queuepackage.IQueue
 func homepage(w http.ResponseWriter, r *http.Request) {
 	/*
 		Read the request body and parse it from JSON to Message Struct
@@ -32,22 +33,24 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	request := Request{}
+	request := queuepackage.Request{}
 	err = json.Unmarshal(buf, &request)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(request.textID)
-	fmt.Println(request.userID)
-	msg := Message{}
+	fmt.Println(request.TextID)
+	fmt.Println(request.UserID)
+	msg := queuepackage.Message{}
 
-	// Get corresponding text from the textID from database
-	msg.textID = request.textID
-	msg.text = "Testing"
-	msg.userID = request.userID
+	// Get corresponding text from the TextID from database
+	msg.TextID = request.TextID
+	msg.Text = "Testing"
+	msg.UserID = request.UserID
 
-	queuepackage.SendToTextQueue(queues, msg.textID, msg.text, msg.userID)
+	//queuepackage.SendToTextQueue(queues, msg.TextID, msg.Text, msg.UserID)
+
+	queuepackage.SendToQueue(textQueue,msg)
 	/*
 		TODO Read the textID from the database
 	*/
@@ -63,8 +66,13 @@ func handleRequests() {
 }
 
 func main() {
-	queues = queuepackage.QueueInit()
-	queuepackage.ReceiveFromUserStoriesQueue(queues)
+	//queues = queuepackage.QueueInit()
+	//queuepackage.ReceiveFromUserStoriesQueue(queues)
+	
+	userStoriesQueue = queuepackage.QueueFactory("userStoriesQueue","userStories")
+	textQueue = queuepackage.QueueFactory("textQueue","text")
+
+	queuepackage.ReceiveFromQueueConc(userStoriesQueue)
 	handleRequests()
 
 }

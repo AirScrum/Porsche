@@ -11,16 +11,21 @@ import (
 )
 
 type Message struct {
-	textID string `json:"textID"`
-	text   string `json:"text"`
-	userID string `json:"userID"`
+	TextID string `json:"textID"`
+	Text   string `json:"text"`
+	UserID string `json:"userID"`
 }
 
 type Request struct {
-	textID string `json:"textID"`
-	userID string `json:"userID"`
+	TextID string `json:"textID"`
+	UserID string `json:"userID"`
 }
 
+type UserStory struct{
+	UserStories []string `json:"userStories"`
+	TextID string `json:"textID"`
+	UserID string `json:"userID"`
+}
 type IQueue struct {
 	ctx                     context.Context
 	ctxCancel               context.CancelFunc
@@ -37,7 +42,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	myQueue.name=queueName
 	myQueue.queueType=queueType
 
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:admin@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	//defer conn.Close()
 
@@ -68,7 +73,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	return myQueue
 }
 
-func SendToQueue(myQueue IQueue, msg Message){
+func SendToQueue(myQueue *IQueue, msg Message){
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
@@ -87,7 +92,7 @@ func SendToQueue(myQueue IQueue, msg Message){
 		})
 	failOnError(err, "["+myQueue.name+"] - Failed to publish a message to the queue")
 
-	log.Printf("["+myQueue.name+"] - [x] Sent %s\n", msg.textID)
+	log.Printf("["+myQueue.name+"] - [x] Sent %s\n", msg.TextID)
 }
 
 
@@ -108,7 +113,10 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 	
 		go func() {
 			for d := range msgs {
-				fmt.Printf("Received Message from: %s\n", d.Body)
+				fmt.Printf("[%s] Received Message:\n %s\n\n",myQueue.name, d.Body)
+				//Decode the message and deserialize it
+				//to JSON format to be saved to the MongoDB
+				
 				// Save to database
 				// Send ID to Gateway
 			}

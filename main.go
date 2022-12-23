@@ -76,7 +76,7 @@ func main() {
 	userStoriesQueue = queuepackage.QueueFactory("userStoriesQueue", "userStories")
 	textQueue = queuepackage.QueueFactory("textQueue", "text")
 
-	// Begin listeing to the user stories queue to sent its content back to the gateway
+	// Begin listening to the user stories queue to send its content back to the gateway
 	queuepackage.ReceiveFromQueueConc(userStoriesQueue)
 
 	// Handle any requests sent to our server

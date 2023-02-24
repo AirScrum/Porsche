@@ -6,10 +6,14 @@ Import important libraries
 import (
 	"encoding/json"
 	"fmt"
+	dbpackage "goserver/dbPackage"
 	queuepackage "goserver/queuePackage"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 /*
@@ -50,6 +54,14 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	// Send the message text queue
 	queuepackage.SendToQueue(textQueue, msg)
 
+	data := queuepackage.Message{}
+	data.TextID = request.TextID
+	data.Text = "Testing"
+	data.UserID = request.UserID
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(data)
+
 	/*
 		TODO Read the textID from the database
 	*/
@@ -71,6 +83,23 @@ func handleRequests() {
 This is our main function
 */
 func main() {
+
+	//Load the .env file
+	err := godotenv.Load(".env")
+	// Print error message when failing
+	if err != nil {
+		panic(err)
+	}
+
+	// Connect to mongoDB
+	client, ctx, cancel, err := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
+	if err != nil {
+		panic(err)
+	}
+
+	// Release resource when the main
+	// function is returned.
+	defer dbpackage.Close(client, ctx, cancel)
 
 	// Define the needed queues
 	userStoriesQueue = queuepackage.QueueFactory("userStoriesQueue", "userStories")

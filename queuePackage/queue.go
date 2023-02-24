@@ -149,11 +149,12 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 		panic(err)
 	}
 
-	// This function runs in the background and is used to always keep listenning to the queue for any incoing message
+	// This function runs in the background and is used to always keep listening to the queue for any incoming message
 	go func() {
 		for d := range msgs {
 			fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
 
+			//TODO
 			//Decode the message and deserialize it
 			//to JSON format to be saved to the MongoDB
 

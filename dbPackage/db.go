@@ -28,6 +28,14 @@ func Close(client *mongo.Client, ctx context.Context,
 	}()
 }
 
+// This is a user defined method that returns
+// a mongo.Client, context.Context,
+// context.CancelFunc and error.
+// mongo.Client will be used for further database
+// operation. context.Context will be used set
+// deadlines for process. context.CancelFunc will
+// be used to cancel context and resource
+// associated with it.
 func Connect(uri string) (*mongo.Client, context.Context,
 	context.CancelFunc, error) {
 
@@ -39,4 +47,28 @@ func Connect(uri string) (*mongo.Client, context.Context,
 	// mongo.Connect return mongo.Client method
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	return client, ctx, cancel, err
+}
+
+// query is user defined method used to query MongoDB,
+// that accepts mongo.client,context, database name,
+// collection name, a query and field.
+
+//  database name and collection name is of type
+// string. query is of type interface.
+// field is of type interface, which limits
+// the field being returned.
+
+// query method returns a cursor and error.
+func Query(client *mongo.Client, ctx context.Context,
+	dataBase, col string, query, field interface{}) (result *mongo.Cursor, err error) {
+
+	// select database and collection.
+	collection := client.Database(dataBase).Collection(col)
+
+	// collection has an method Find,
+	// that returns a mongo.cursor
+	// based on query and field.
+	result, err = collection.Find(ctx, query,
+		options.Find().SetProjection(field))
+	return
 }

@@ -4,6 +4,7 @@ package main
 Import important libraries
 */
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	dbpackage "goserver/dbPackage"
@@ -14,6 +15,9 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 /*
@@ -22,10 +26,17 @@ Define the queues we need
 var userStoriesQueue *queuepackage.IQueue
 var textQueue *queuepackage.IQueue
 
+var mongoClient *mongo.Client
+var mongoContext context.Context
+var mongoCancel context.CancelFunc
+var mongoError error
+
 /*
 This function is called when the is a request in our server, which contains the textid and needed to be sent to the text queue
 */
 func homepage(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println(mongoClient, mongoContext, mongoCancel)
 
 	// Read the request body and parse it from JSON to Message Struct
 	defer r.Body.Close()
@@ -65,6 +76,57 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	/*
 		TODO Read the textID from the database
 	*/
+
+	// create a filter an option of type interface,
+	// that stores bjson objects.
+	var filter, option interface{}
+
+	// filter  gets all document,
+	// with maths field greater that 70
+
+	objID, err := primitive.ObjectIDFromHex("64009b4eff8e68d7cd8b7955")
+	if err != nil {
+		panic(err)
+	}
+	filter = bson.D{{
+		Key:   "_id",
+		Value: objID,
+	}}
+
+	//  option remove id field from all documents
+	//option = bson.D{{"_id", 0}}
+	option = bson.D{}
+
+	// call the query method with client, context,
+	// database name, collection  name, filter and option
+	// This method returns momngo.cursor and error if any.
+	cursor, err := dbpackage.Query(mongoClient, mongoContext, "test",
+		"text", filter, option)
+	// handle the errors.
+	if err != nil {
+		panic(err)
+	}
+
+	var results []bson.D
+
+	// to get bson object  from cursor,
+	// returns error if any.
+	if err := cursor.All(mongoContext, &results); err != nil {
+
+		// handle the error
+		panic(err)
+	}
+
+	// printing the result of query.
+	fmt.Println("Query Result")
+	for _, doc := range results {
+		fmt.Println(doc)
+	}
+
+	// Release resource when the main
+	// function is returned.
+	defer dbpackage.Close(mongoClient, mongoContext, mongoCancel)
+
 	/*
 		TODO Send the text fetched from the database to the TextQueue
 	*/
@@ -92,14 +154,12 @@ func main() {
 	}
 
 	// Connect to mongoDB
-	client, ctx, cancel, err := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
+	mongoClient, mongoContext, mongoCancel, mongoError = dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
 	if err != nil {
 		panic(err)
 	}
 
-	// Release resource when the main
-	// function is returned.
-	defer dbpackage.Close(client, ctx, cancel)
+	fmt.Println(mongoClient, mongoContext, mongoCancel)
 
 	// Define the needed queues
 	userStoriesQueue = queuepackage.QueueFactory("userStoriesQueue", "userStories")

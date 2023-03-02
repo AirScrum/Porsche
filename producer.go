@@ -6,7 +6,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func main2() {
+func main() {
 	fmt.Println("Go RabbitMQ Tutorial")
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {

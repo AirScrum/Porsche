@@ -28,7 +28,6 @@ This struct is used, when we have a request from the gateway with the text id, t
 */
 type Request struct {
 	TextID string `json:"textID"`
-	UserID string `json:"userID"`
 }
 
 /*

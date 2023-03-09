@@ -23,6 +23,18 @@ type Message struct {
 	TextContent string `bson:"textContent,omitempty" json:"textContent,omitempty"`
 }
 
+type UserStory struct{
+	userStoryID string
+	userStoryTitle string
+	userStoryDescription string
+}
+
+type Meeting struct{
+	meetingID string
+	meetingTitle string
+	meetingUserStories []UserStory
+}
+
 // This is a user defined method to close resources.
 // This method closes mongoDB connection and cancel context.
 func Close(client *mongo.Client, ctx context.Context,
@@ -106,36 +118,29 @@ func GetMessageFromTextId(textid string) queuepackage.Message {
 		Key:   "_id",
 		Value: objID,
 	}}
-
-	//  option remove id field from all documents
+	//option remove id field from all documents
 	//option = bson.D{{"_id", 0}}
 	option = bson.D{}
-
 	// call the query method with client, context,
 	// database name, collection  name, filter and option
-	// This method returns momngo.cursor and error if any.
+	// This method returns mongo.cursor and error if any.
 	cursor, queryErr := Query(mongoClient, mongoContext, "test",
 		"text", filter, option)
 	// handle the errors.
 	if queryErr != nil {
 		panic(queryErr)
 	}
-
 	var results []bson.D
-
 	// to get bson object  from cursor,
 	// returns error if any.
 	if err := cursor.All(mongoContext, &results); err != nil {
-
 		// handle the error
 		panic(err)
 	}
-
 	var text, err = convertToStruct(results)
 	if err != nil {
 		panic(err)
 	}
-
 	msg := queuepackage.Message{}
 	msg.TextID = text[0].ID
 	msg.Text = text[0].TextContent

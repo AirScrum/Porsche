@@ -8,6 +8,7 @@ import (
 	"fmt"
 	dbpackage "goserver/dbPackage"
 	queuepackage "goserver/queuePackage"
+	"goserver/models"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -37,14 +38,14 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Take the request body and put it in an object
-	request := queuepackage.Request{}
+	request := models.Request{}
 	err = json.Unmarshal(buf, &request)
 	if err != nil {
 		panic(err)
 	}
 
 	// Define Message that will be sent to the text queue
-	msg := queuepackage.Message{}
+	msg := models.Message{}
 
 	msg = dbpackage.GetMessageFromTextId(request.TextID)
 	fmt.Println(msg)

@@ -12,25 +12,9 @@ import (
 	"goserver/models"
 	"log"
 	"time"
-
+	dbpackage "goserver/dbPackage"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
-
-/*
-This struct is for sending to the text message queue, for the NLP model to take this text and convert it to user stories
-*/
-type Message struct {
-	TextID string `json:"textID"`
-	Text   string `json:"text"`
-	UserID string `json:"userID"`
-}
-
-/*
-This struct is used, when we have a request from the gateway with the text id, to get the corresponding text from database, then send it to text queue
-*/
-type Request struct {
-	TextID string `json:"textID"`
-}
 
 /*
 This struct is used to get the user stories array from the user stories queue, that is received from the NLP model
@@ -102,7 +86,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 /*
 This function is for sending in queue
 */
-func SendToQueue(myQueue *IQueue, msg Message) {
+func SendToQueue(myQueue *IQueue, msg models.Message) {
 
 	// To encode the msg object into array of bytes to be sent in the queue
 	var buf bytes.Buffer
@@ -134,8 +118,8 @@ This function is for receiving from the queue
 */
 func ReceiveFromQueueConc(myQueue *IQueue) {
 	// This function runs in the background and is used to always keep listening to the queue for any incoming message
-	go func() {
 	// Here we receive the message
+	go func() {
 	msgs, err := myQueue.channel.Consume(
 		myQueue.queue.Name,
 		"",
@@ -149,17 +133,18 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 	if err != nil {
 		panic(err)
 	}
-	d := <-msgs
-	message := d.Body
-	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name,message)
+	for d := range msgs {
+	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
 	var meeting models.Meeting
-	err = json.Unmarshal(message, &meeting)
+	err = json.Unmarshal(d.Body, &meeting)
 	if err != nil {
     	fmt.Println("Error:", err)
     	return
 	}
 	fmt.Println(meeting)
-		// for d := range msgs {
+	h1:=dbpackage.InsertUserStory(meeting.MeetingUserStories[0])
+	fmt.Print(h1)	
+	// for d := range msgs {
 		// 	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
 		// 	var meeting Meeting
 
@@ -169,7 +154,7 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 
 			// Save to database
 			// Send ID to Gateway
-		
+		}	
 	}()
 }
 

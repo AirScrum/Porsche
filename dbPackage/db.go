@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
-	queuepackage "goserver/queuePackage"
+	"goserver/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,13 +15,13 @@ var mongoClient *mongo.Client
 var mongoContext context.Context
 var mongoCancel context.CancelFunc
 var mongoError error
+var userStoriesCol *mongo.Collection
 
 type Message struct {
 	ID          string `bson:"_id,omitempty" json:"_id,omitempty"`
 	UserID      string `bson:"userID,omitempty" json:"userID,omitempty"`
 	TextContent string `bson:"textContent,omitempty" json:"textContent,omitempty"`
 }
-
 
 // This is a user defined method to close resources.
 // This method closes mongoDB connection and cancel context.
@@ -62,6 +62,8 @@ func Connect(uri string) (*mongo.Client, context.Context,
 	// mongo.Connect return mongo.Client method
 	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
 
+	//Initialize the userStories column
+	userStoriesCol = mongoClient.Database("test").Collection("user_stories")
 	return mongoClient, mongoContext, mongoCancel, mongoError
 }
 
@@ -90,7 +92,7 @@ func Query(client *mongo.Client, ctx context.Context,
 }
 
 // Function that takes the text id and returns the Message (text) Struct
-func GetMessageFromTextId(textid string) queuepackage.Message {
+func GetMessageFromTextId(textid string) models.Message {
 	// create a filter an option of type interface,
 	// that stores bjson objects.
 	var filter, option interface{}
@@ -130,14 +132,21 @@ func GetMessageFromTextId(textid string) queuepackage.Message {
 	if err != nil {
 		panic(err)
 	}
-	msg := queuepackage.Message{}
+	msg := models.Message{}
 	msg.TextID = text[0].ID
 	msg.Text = text[0].TextContent
 	msg.UserID = text[0].UserID
 	return msg
 
 }
-
+// Function to insert userStory in the userStories collection
+func InsertUserStory(userStory models.UserStory) primitive.ObjectID{
+		res, err := userStoriesCol.InsertOne(context.Background(), userStory)
+		if err != nil {
+			panic(err)
+		}
+		return res.InsertedID.(primitive.ObjectID)
+}
 // Convert from []primitive.D to array of struct Message
 func convertToStruct(docs []primitive.D) ([]Message, error) {
 	var myStructs []Message

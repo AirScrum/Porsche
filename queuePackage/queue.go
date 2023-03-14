@@ -119,7 +119,6 @@ This function is for receiving from the queue
 func ReceiveFromQueueConc(myQueue *IQueue) {
 	// This function runs in the background and is used to always keep listening to the queue for any incoming message
 	// Here we receive the message
-	go func() {
 	msgs, err := myQueue.channel.Consume(
 		myQueue.queue.Name,
 		"",
@@ -133,6 +132,7 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 	if err != nil {
 		panic(err)
 	}
+	go func() {
 	for d := range msgs {
 	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
 	var meeting models.Meeting

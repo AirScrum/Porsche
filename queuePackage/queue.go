@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
+	"goserver/models"
 	"log"
 	"time"
 
@@ -62,7 +64,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	myQueue.queueType = queueType
 
 	// To connect to the rabbitmq (message queue) server
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://admin:admin@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	//defer conn.Close()
 
@@ -131,7 +133,8 @@ func SendToQueue(myQueue *IQueue, msg Message) {
 This function is for receiving from the queue
 */
 func ReceiveFromQueueConc(myQueue *IQueue) {
-
+	// This function runs in the background and is used to always keep listening to the queue for any incoming message
+	go func() {
 	// Here we receive the message
 	msgs, err := myQueue.channel.Consume(
 		myQueue.queue.Name,
@@ -142,16 +145,23 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 		false,
 		nil,
 	)
-
 	// Print error message when failing
 	if err != nil {
 		panic(err)
 	}
-
-	// This function runs in the background and is used to always keep listening to the queue for any incoming message
-	go func() {
-		for d := range msgs {
-			fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
+	d := <-msgs
+	message := d.Body
+	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name,message)
+	var meeting models.Meeting
+	err = json.Unmarshal(message, &meeting)
+	if err != nil {
+    	fmt.Println("Error:", err)
+    	return
+	}
+	fmt.Println(meeting)
+		// for d := range msgs {
+		// 	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
+		// 	var meeting Meeting
 
 			//TODO
 			//Decode the message and deserialize it
@@ -159,7 +169,7 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 
 			// Save to database
 			// Send ID to Gateway
-		}
+		
 	}()
 }
 

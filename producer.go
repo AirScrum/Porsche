@@ -45,19 +45,17 @@ func main() {
 	//}
 
 	// attempt to publish a message to the queue!
-	meeting := models.Meeting{
-		MeetingID:    "1283182",
-		MeetingTitle: "Hello World",
-		MeetingUserStories: []models.UserStory{
+	meeting := models.ModelResponse{
+		UserID:"63f772f72db76b133592617c",
+		TextID: "64009b4eff8e68d7cd8b7955",
+		UserStories: []models.UserStory{
 			{
-				UserStoryID:        "12831823",
-				UserStoryTitle:     "Baby",
-				UserStoryDescription: "Its U that i need",
+				UserStoryTitle:     "Login",
+				UserStoryDescription: "As a user, I want to log in",
 			},
 			{
-				UserStoryID:        "12831823",
-				UserStoryTitle:     "Baby",
-				UserStoryDescription: "Its u that i need",
+				UserStoryTitle:     "Sign up",
+				UserStoryDescription: "As a user, I want to sign up",
 			},
 		},
 	}

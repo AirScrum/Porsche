@@ -24,7 +24,9 @@ var userStoriesQueue *queuepackage.IQueue
 var textQueue *queuepackage.IQueue
 
 /*
-This function is called when the is a request in our server, which contains the textid and needed to be sent to the text queue
+This function is called when the is a request in our server, which contains the textID needed to be sent to the text queue
+The database is queried with the textID received, and construct an object contains the textID, userID, and text needed
+to be converted. Then the object is converted to array of bytes and sent to the textQueue.
 */
 func homepage(w http.ResponseWriter, r *http.Request) {
 

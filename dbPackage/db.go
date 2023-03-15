@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"time"
-	"goserver/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"goserver/models"
+
 )
 
 var mongoClient *mongo.Client
@@ -63,7 +64,7 @@ func Connect(uri string) (*mongo.Client, context.Context,
 	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
 
 	//Initialize the userStories column
-	userStoriesCol = mongoClient.Database("test").Collection("user_stories")
+	userStoriesCol = mongoClient.Database("test").Collection("userStories")
 	return mongoClient, mongoContext, mongoCancel, mongoError
 }
 
@@ -139,14 +140,16 @@ func GetMessageFromTextId(textid string) models.Message {
 	return msg
 
 }
+
 // Function to insert userStory in the userStories collection
-func InsertUserStory(userStory models.UserStory) primitive.ObjectID{
-		res, err := userStoriesCol.InsertOne(context.Background(), userStory)
-		if err != nil {
-			panic(err)
-		}
-		return res.InsertedID.(primitive.ObjectID)
+func InsertUserStory(userStory models.UserStoryModel) (*mongo.InsertOneResult, error) {
+	res, err := userStoriesCol.InsertOne(context.Background(), userStory)
+	if err != nil {
+		panic(err)
+	}
+	return res, err
 }
+
 // Convert from []primitive.D to array of struct Message
 func convertToStruct(docs []primitive.D) ([]Message, error) {
 	var myStructs []Message

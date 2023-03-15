@@ -1,13 +1,21 @@
 package models
-
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+/*
+Represents the UserStory type coming from the NLP Model
+*/
 type UserStory struct{
-	UserStoryID string `json:"userStoryID" bson:"userStoryID"`
 	UserStoryTitle string `json:"userStoryTitle" bson:"userStoryTitle"`
 	UserStoryDescription string `json:"userStoryDescription" bson:"userStoryDescription"`
 }
 
-type Meeting struct{
-	MeetingID string `json:"meetingID" bson:"meetingID"`
-	MeetingTitle string `json:"meetingTitle" bson:"meetingTitle"`
-	MeetingUserStories []UserStory `json:"meetingUserStories" bson:"meetingUserStories"`
+/*
+Represents the UserStory schema in the database.
+*/
+type UserStoryModel struct{
+	UserStoryTitle string `json:"userStoryTitle" bson:"userStoryTitle"`
+	UserStoryDescription string `json:"userStoryDescription" bson:"userStoryDescription"`
+	UserID primitive.ObjectID `json:"userID" bson:"userID"`
+	TextID primitive.ObjectID `json:"textID" bson:"textID"`
 }

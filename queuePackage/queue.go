@@ -9,21 +9,13 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	dbpackage "goserver/dbPackage"
 	"goserver/models"
 	"log"
 	"time"
-	dbpackage "goserver/dbPackage"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
-
-/*
-This struct is used to get the user stories array from the user stories queue, that is received from the NLP model
-*/
-type UserStory struct {
-	UserStories []string `json:"userStories"`
-	TextID      string   `json:"textID"`
-	UserID      string   `json:"userID"`
-}
 
 /*
 This struct specifies all the needed attributes for managing queues
@@ -133,28 +125,45 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 		panic(err)
 	}
 	go func() {
-	for d := range msgs {
-	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
-	var meeting models.Meeting
-	err = json.Unmarshal(d.Body, &meeting)
-	if err != nil {
-    	fmt.Println("Error:", err)
-    	return
-	}
-	fmt.Println(meeting)
-	h1:=dbpackage.InsertUserStory(meeting.MeetingUserStories[0])
-	fmt.Print(h1)	
-	// for d := range msgs {
-		// 	fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
-		// 	var meeting Meeting
-
-			//TODO
-			//Decode the message and deserialize it
-			//to JSON format to be saved to the MongoDB
-
-			// Save to database
-			// Send ID to Gateway
-		}	
+		//Loop on all messages in the queue
+		for d := range msgs {
+			fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
+			var modelResponse models.ModelResponse
+			//Converting message from bytes array to meeting format
+			err = json.Unmarshal(d.Body, &modelResponse)
+			if err != nil {
+				fmt.Println("Meeting marshalling error:", err)
+				return
+			}
+			//Converting meeting to meetingModel before adding it
+			//to the database
+			for i, userStory := range modelResponse.UserStories {
+				//Converting textID into ObjectID
+				mappedTextID, err := primitive.ObjectIDFromHex(modelResponse.TextID)
+				if err != nil {
+					panic(err)
+				}
+				//Converting userID into ObjectID
+				mappedUserID, err := primitive.ObjectIDFromHex(modelResponse.UserID)
+				if err != nil {
+					panic(err)
+				}
+				//Constructing the userStory model to match the required format in the database
+				userStoryModel := models.UserStoryModel{
+					TextID:               mappedTextID,
+					UserID:               mappedUserID,
+					UserStoryTitle:       userStory.UserStoryTitle,
+					UserStoryDescription: userStory.UserStoryDescription,
+				}
+				res, err := dbpackage.InsertUserStory(userStoryModel)
+				if err != nil {
+					log.Fatal("User Story InsertOne Error: ", err, i)
+				}
+				fmt.Println("Inserted ", res.InsertedID, i)
+			}
+			//TODO Create a POST request on a route
+			//to notify user that userStories were saved
+		}
 	}()
 }
 

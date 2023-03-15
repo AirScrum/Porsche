@@ -7,37 +7,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	dbpackage "goserver/dbPackage"
+	"goserver/models"
 	"log"
 	"time"
-
-	amqp "github.com/rabbitmq/amqp091-go"
 )
-
-/*
-This struct is for sending to the text message queue, for the NLP model to take this text and convert it to user stories
-*/
-type Message struct {
-	TextID string `json:"textID"`
-	Text   string `json:"text"`
-	UserID string `json:"userID"`
-}
-
-/*
-This struct is used, when we have a request from the gateway with the text id, to get the corresponding text from database, then send it to text queue
-*/
-type Request struct {
-	TextID string `json:"textID"`
-}
-
-/*
-This struct is used to get the user stories array from the user stories queue, that is received from the NLP model
-*/
-type UserStory struct {
-	UserStories []string `json:"userStories"`
-	TextID      string   `json:"textID"`
-	UserID      string   `json:"userID"`
-}
 
 /*
 This struct specifies all the needed attributes for managing queues
@@ -62,7 +40,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	myQueue.queueType = queueType
 
 	// To connect to the rabbitmq (message queue) server
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://admin:admin@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	//defer conn.Close()
 
@@ -100,7 +78,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 /*
 This function is for sending in queue
 */
-func SendToQueue(myQueue *IQueue, msg Message) {
+func SendToQueue(myQueue *IQueue, msg models.Message) {
 
 	// To encode the msg object into array of bytes to be sent in the queue
 	var buf bytes.Buffer
@@ -131,7 +109,7 @@ func SendToQueue(myQueue *IQueue, msg Message) {
 This function is for receiving from the queue
 */
 func ReceiveFromQueueConc(myQueue *IQueue) {
-
+	// This function runs in the background and is used to always keep listening to the queue for any incoming message
 	// Here we receive the message
 	msgs, err := myQueue.channel.Consume(
 		myQueue.queue.Name,
@@ -142,23 +120,49 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 		false,
 		nil,
 	)
-
 	// Print error message when failing
 	if err != nil {
 		panic(err)
 	}
-
-	// This function runs in the background and is used to always keep listening to the queue for any incoming message
 	go func() {
+		//Loop on all messages in the queue
 		for d := range msgs {
 			fmt.Printf("[%s] Received Message:\n %s\n\n", myQueue.name, d.Body)
-
-			//TODO
-			//Decode the message and deserialize it
-			//to JSON format to be saved to the MongoDB
-
-			// Save to database
-			// Send ID to Gateway
+			var modelResponse models.ModelResponse
+			//Converting message from bytes array to meeting format
+			err = json.Unmarshal(d.Body, &modelResponse)
+			if err != nil {
+				fmt.Println("Meeting marshalling error:", err)
+				return
+			}
+			//Converting meeting to meetingModel before adding it
+			//to the database
+			for i, userStory := range modelResponse.UserStories {
+				//Converting textID into ObjectID
+				mappedTextID, err := primitive.ObjectIDFromHex(modelResponse.TextID)
+				if err != nil {
+					panic(err)
+				}
+				//Converting userID into ObjectID
+				mappedUserID, err := primitive.ObjectIDFromHex(modelResponse.UserID)
+				if err != nil {
+					panic(err)
+				}
+				//Constructing the userStory model to match the required format in the database
+				userStoryModel := models.UserStoryModel{
+					TextID:               mappedTextID,
+					UserID:               mappedUserID,
+					UserStoryTitle:       userStory.UserStoryTitle,
+					UserStoryDescription: userStory.UserStoryDescription,
+				}
+				res, err := dbpackage.InsertUserStory(userStoryModel)
+				if err != nil {
+					log.Fatal("User Story InsertOne Error: ", err, i)
+				}
+				fmt.Println("Inserted ", res.InsertedID, i)
+			}
+			//TODO Create a POST request on a route
+			//to notify user that userStories were saved
 		}
 	}()
 }

@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-
+	"goserver/models"
 	"github.com/streadway/amqp"
+	"encoding/json"
+
 )
 
-func main2() {
+func main() {
 	fmt.Println("Go RabbitMQ Tutorial")
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://admin:admin@localhost:5672/")
 	if err != nil {
 		fmt.Println("Failed Initializing Broker Connection")
 		panic(err)
@@ -43,6 +45,26 @@ func main2() {
 	//}
 
 	// attempt to publish a message to the queue!
+	meeting := models.ModelResponse{
+		UserID:"63f772f72db76b133592617c",
+		TextID: "64009b4eff8e68d7cd8b7955",
+		UserStories: []models.UserStory{
+			{
+				UserStoryTitle:     "Login",
+				UserStoryDescription: "As a user, I want to log in",
+			},
+			{
+				UserStoryTitle:     "Sign up",
+				UserStoryDescription: "As a user, I want to sign up",
+			},
+		},
+	}
+	meetingBytes, err := json.Marshal(meeting)
+	if err != nil {
+		fmt.Println("Error marshaling Person:", err)
+		return
+	}
+fmt.Println(meeting)
 	err = ch.Publish(
 		"",
 		"userStoriesQueue",
@@ -50,7 +72,7 @@ func main2() {
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte("Hello World"),
+			Body:        []byte(meetingBytes),
 		},
 	)
 

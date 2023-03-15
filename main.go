@@ -8,6 +8,7 @@ import (
 	"fmt"
 	dbpackage "goserver/dbPackage"
 	queuepackage "goserver/queuePackage"
+	"goserver/models"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,7 +24,9 @@ var userStoriesQueue *queuepackage.IQueue
 var textQueue *queuepackage.IQueue
 
 /*
-This function is called when the is a request in our server, which contains the textid and needed to be sent to the text queue
+This function is called when the is a request in our server, which contains the textID needed to be sent to the text queue
+The database is queried with the textID received, and construct an object contains the textID, userID, and text needed
+to be converted. Then the object is converted to array of bytes and sent to the textQueue.
 */
 func homepage(w http.ResponseWriter, r *http.Request) {
 
@@ -37,14 +40,14 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Take the request body and put it in an object
-	request := queuepackage.Request{}
+	request := models.Request{}
 	err = json.Unmarshal(buf, &request)
 	if err != nil {
 		panic(err)
 	}
 
 	// Define Message that will be sent to the text queue
-	msg := queuepackage.Message{}
+	msg := models.Message{}
 
 	msg = dbpackage.GetMessageFromTextId(request.TextID)
 	fmt.Println(msg)

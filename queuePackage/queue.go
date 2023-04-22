@@ -9,12 +9,14 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	amqp "github.com/rabbitmq/amqp091-go"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	dbpackage "goserver/dbPackage"
 	"goserver/models"
 	"log"
+	"os"
 	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 /*
@@ -40,7 +42,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	myQueue.queueType = queueType
 
 	// To connect to the rabbitmq (message queue) server
-	conn, err := amqp.Dial("amqp://admin:admin@localhost:5672/")
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URI"))
 	failOnError(err, "Failed to connect to RabbitMQ")
 	//defer conn.Close()
 

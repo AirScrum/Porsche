@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	dbpackage "goserver/dbPackage"
-	queuepackage "goserver/queuePackage"
 	"goserver/models"
+	queuepackage "goserver/queuePackage"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -66,7 +66,7 @@ This function is called when a request is sent to our server, and sent the reque
 func handleRequests() {
 	fmt.Println("Server Started")
 	http.HandleFunc("/main", homepage)
-	log.Fatal(http.ListenAndServe(":8002", nil))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
 
 /*

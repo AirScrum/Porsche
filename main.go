@@ -13,8 +13,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 /*
@@ -74,12 +72,12 @@ This is our main function
 */
 func main() {
 
-	//Load the .env file
-	err := godotenv.Load(".env")
-	// Print error message when failing
-	if err != nil {
-		panic(err)
-	}
+	// //Load the .env file
+	// err := godotenv.Load(".env")
+	// // Print error message when failing
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	// Connect to mongoDB
 	mongoClient, mongoContext, mongoCancel, mongoError := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))

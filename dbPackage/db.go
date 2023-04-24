@@ -3,13 +3,13 @@ package dbPackage
 import (
 	"context"
 	"fmt"
+	"goserver/models"
 	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"goserver/models"
-
 )
 
 var mongoClient *mongo.Client
@@ -55,10 +55,12 @@ func Close(client *mongo.Client, ctx context.Context,
 func Connect(uri string) (*mongo.Client, context.Context,
 	context.CancelFunc, error) {
 
+	fmt.Println("Test")
+
 	// ctx will be used to set deadline for process, here
 	// deadline will of 120 seconds.
 	mongoContext, mongoCancel = context.WithTimeout(context.Background(),
-		120*time.Second)
+		1200*time.Second)
 
 	// mongo.Connect return mongo.Client method
 	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))

@@ -4,9 +4,7 @@ package queuepackage
 Import important libraries
 */
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	dbpackage "goserver/dbPackage"
@@ -83,22 +81,20 @@ This function is for sending in queue
 func SendToQueue(myQueue *IQueue, msg models.Message) {
 
 	// To encode the msg object into array of bytes to be sent in the queue
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-
-	if err := enc.Encode(msg); err != nil {
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Send to the queue
-	err := myQueue.channel.PublishWithContext(myQueue.ctx,
+	err = myQueue.channel.PublishWithContext(myQueue.ctx,
 		"",                 // exchange
 		myQueue.queue.Name, // routing key
 		false,              // mandatory
 		false,              // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        buf.Bytes(),
+			ContentType: "application/json",
+			Body:        msgBytes,
 		})
 
 	// Print error message when failing

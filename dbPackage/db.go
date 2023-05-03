@@ -55,18 +55,17 @@ func Close(client *mongo.Client, ctx context.Context,
 func Connect(uri string) (*mongo.Client, context.Context,
 	context.CancelFunc, error) {
 
-	fmt.Println("Test")
-
 	// ctx will be used to set deadline for process, here
 	// deadline will of 120 seconds.
 	mongoContext, mongoCancel = context.WithTimeout(context.Background(),
-		1200*time.Second)
+		6200*time.Second)
 
 	// mongo.Connect return mongo.Client method
 	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
 
 	//Initialize the userStories column
 	userStoriesCol = mongoClient.Database("test").Collection("userStories")
+
 	return mongoClient, mongoContext, mongoCancel, mongoError
 }
 

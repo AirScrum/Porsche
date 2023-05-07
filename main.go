@@ -47,7 +47,19 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	// Define Message that will be sent to the text queue
 	msg := models.Message{}
 
-	msg = dbpackage.GetMessageFromTextId(request.TextID)
+	msg, err = dbpackage.GetMessageFromTextId(request.TextID)
+
+	if err != nil {
+		mongoClient, mongoContext, mongoCancel, mongoError := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
+		if mongoError != nil {
+			panic(mongoError)
+		}
+		// Release resource when the main
+		// function is returned.
+		defer dbpackage.Close(mongoClient, mongoContext, mongoCancel)
+		msg, err = dbpackage.GetMessageFromTextId(request.TextID)
+	}
+
 	fmt.Println(msg)
 	// Send the message text queue
 	queuepackage.SendToQueue(textQueue, msg)
@@ -71,13 +83,6 @@ func handleRequests() {
 This is our main function
 */
 func main() {
-
-	// //Load the .env file
-	// err := godotenv.Load(".env")
-	// // Print error message when failing
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	// Connect to mongoDB
 	mongoClient, mongoContext, mongoCancel, mongoError := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))

@@ -93,7 +93,7 @@ func Query(client *mongo.Client, ctx context.Context,
 }
 
 // Function that takes the text id and returns the Message (text) Struct
-func GetMessageFromTextId(textid string) models.Message {
+func GetMessageFromTextId(textid string) (models.Message, error) {
 	// create a filter an option of type interface,
 	// that stores bjson objects.
 	var filter, option interface{}
@@ -119,7 +119,8 @@ func GetMessageFromTextId(textid string) models.Message {
 		"texts", filter, option)
 	// handle the errors.
 	if queryErr != nil {
-		panic(queryErr)
+		//panic(queryErr)
+		return models.Message{}, queryErr
 	}
 	var results []bson.D
 	// to get bson object  from cursor,
@@ -137,7 +138,7 @@ func GetMessageFromTextId(textid string) models.Message {
 	msg.TextID = text[0].ID
 	msg.Text = text[0].TextContent
 	msg.UserID = text[0].UserID
-	return msg
+	return msg, nil
 
 }
 

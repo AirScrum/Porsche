@@ -80,14 +80,14 @@ func main() {
 	// }
 
 	// Connect to mongoDB
-	mongoClient, mongoContext, mongoCancel, mongoError := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
+	mongoClient, mongoError := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
 	if mongoError != nil {
 		panic(mongoError)
 	}
 
 	// Release resource when the main
 	// function is returned.
-	defer dbpackage.Close(mongoClient, mongoContext, mongoCancel)
+	defer dbpackage.Close(mongoClient)
 
 	// Define the needed queues
 	userStoriesQueue = queuepackage.QueueFactory("userStoriesQueue", "userStories")

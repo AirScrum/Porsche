@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"goserver/models"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -26,22 +25,10 @@ type Message struct {
 
 // This is a user defined method to close resources.
 // This method closes mongoDB connection and cancel context.
-func Close(client *mongo.Client, ctx context.Context,
-	cancel context.CancelFunc) {
-
-	// CancelFunc to cancel to context
-	defer cancel()
-
-	// client provides a method to close
-	// a mongoDB connection.
-	defer func() {
-
-		// client.Disconnect method also has deadline.
-		// returns error if any,
-		if err := client.Disconnect(ctx); err != nil {
-			panic(err)
-		}
-	}()
+func Close(client *mongo.Client) {
+	if err := client.Disconnect(context.Background()); err != nil {
+		panic(err)
+	}
 }
 
 // This is a user defined method that returns
@@ -51,21 +38,20 @@ func Close(client *mongo.Client, ctx context.Context,
 // operation. context. context.CancelFunc will
 // be used to cancel context and resource
 // associated with it.
-func Connect(uri string) (*mongo.Client, context.Context,
-	context.CancelFunc, error) {
+func Connect(uri string) (*mongo.Client, error) {
+	// create a background context
+	mongoContext := context.Background()
 
-	// ctx will be used to set deadline for process, here
-	// deadline will of 120 seconds.
-	mongoContext, mongoCancel = context.WithTimeout(context.Background(),
-		6200*time.Second)
+	// mongo.Connect returns a mongo.Client object
+	mongoClient, err := mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
+	}
 
-	// mongo.Connect return mongo.Client method
-	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
-
-	//Initialize the userStories column
+	//Initialize the userStories collection
 	userStoriesCol = mongoClient.Database("test").Collection("userStories")
 
-	return mongoClient, mongoContext, mongoCancel, mongoError
+	return mongoClient, err
 }
 
 // query is user defined method used to query MongoDB,

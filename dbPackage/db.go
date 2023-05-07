@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"goserver/models"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -50,13 +51,16 @@ func Close(client *mongo.Client, ctx context.Context,
 // operation. context. context.CancelFunc will
 // be used to cancel context and resource
 // associated with it.
-func Connect(uri string) (*mongo.Client, context.Context, context.CancelFunc, error) {
+func Connect(uri string) (*mongo.Client, context.Context,
+	context.CancelFunc, error) {
 
-	// will not set timeout
-	mongoContext, mongoCancel := context.WithCancel(context.Background())
+	// ctx will be used to set deadline for process, here
+	// deadline will of 120 seconds.
+	mongoContext, mongoCancel = context.WithTimeout(context.Background(),
+		6200*time.Second)
 
 	// mongo.Connect return mongo.Client method
-	mongoClient, mongoError := mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
+	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
 
 	//Initialize the userStories column
 	userStoriesCol = mongoClient.Database("test").Collection("userStories")

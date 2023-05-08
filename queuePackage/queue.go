@@ -53,7 +53,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 
 	myQueue.queue, myQueue.err = myQueue.channel.QueueDeclare(
 		myQueue.name, // name
-		false,        // durable
+		true,         // durable
 		false,        // delete when unused
 		false,        // exclusive
 		false,        // no-wait
@@ -110,12 +110,13 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 	msgs, err := myQueue.channel.Consume(
 		myQueue.queue.Name,
 		"",
-		true,
+		false,
 		false,
 		false,
 		false,
 		nil,
 	)
+
 	// Print error message when failing
 	if err != nil {
 		panic(err)

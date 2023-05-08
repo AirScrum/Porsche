@@ -53,7 +53,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 
 	myQueue.queue, myQueue.err = myQueue.channel.QueueDeclare(
 		myQueue.name, // name
-		true,         // durable
+		false,        // durable
 		false,        // delete when unused
 		false,        // exclusive
 		false,        // no-wait

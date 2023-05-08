@@ -11,7 +11,6 @@ import (
 	"goserver/models"
 	"log"
 	"os"
-	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -49,7 +48,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	//defer myQueue.channel.Close()
 
 	/*
-		Declaring the queue
+	   Declaring the queue
 	*/
 
 	myQueue.queue, myQueue.err = myQueue.channel.QueueDeclare(
@@ -66,8 +65,7 @@ func QueueFactory(queueName string, queueType string) *IQueue {
 	fmt.Println(myQueue.queue)
 
 	// Define queue context
-	myQueue.ctx, myQueue.ctxCancel = context.WithTimeout(context.Background(), 5*time.Second)
-	defer myQueue.ctxCancel()
+	myQueue.ctx = context.Background()
 
 	// Printing the context of the queue
 	fmt.Println(myQueue.ctx)

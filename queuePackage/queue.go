@@ -110,7 +110,7 @@ func ReceiveFromQueueConc(myQueue *IQueue) {
 	msgs, err := myQueue.channel.Consume(
 		myQueue.queue.Name,
 		"",
-		false,
+		true,
 		false,
 		false,
 		false,

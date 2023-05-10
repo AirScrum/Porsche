@@ -71,11 +71,20 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+This function is used to check health of porsche
+*/
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("pong"))
+}
+
+/*
 This function is called when a request is sent to our server, and sent the request to homepage function to handle it
 */
 func handleRequests() {
 	fmt.Println("Server Started")
 	http.HandleFunc("/main", homepage)
+	http.HandleFunc("/ping", healthCheck)
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
 

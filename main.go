@@ -13,6 +13,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 /*
@@ -75,6 +77,7 @@ This function is used to check health of porsche
 */
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("pong"))
 }
 
@@ -84,7 +87,7 @@ This function is called when a request is sent to our server, and sent the reque
 func handleRequests() {
 	fmt.Println("Server Started")
 	http.HandleFunc("/main", homepage)
-	http.HandleFunc("/ping", healthCheck)
+	http.HandleFunc("/health", healthCheck)
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
 
@@ -103,9 +106,14 @@ func main() {
 	// function is returned.
 	defer dbpackage.Close(mongoClient, mongoContext, mongoCancel)
 
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URI"))
+	if err != nil {
+		log.Panicf("%s: %s", "Failed to connect to RabbitMQ", err)
+	}
+
 	// Define the needed queues
-	userStoriesQueue = queuepackage.QueueFactory("userStoriesQueue", "userStories")
-	textQueue = queuepackage.QueueFactory("textQueue", "text")
+	userStoriesQueue = queuepackage.QueueFactory(conn, "userStoriesQueue", "userStories")
+	textQueue = queuepackage.QueueFactory(conn, "textQueue", "text")
 
 	// Begin listening to the user stories queue to send its content back to the gateway
 	queuepackage.ReceiveFromQueueConc(userStoriesQueue)

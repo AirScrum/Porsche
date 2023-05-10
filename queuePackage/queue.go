@@ -10,7 +10,6 @@ import (
 	dbpackage "goserver/dbPackage"
 	"goserver/models"
 	"log"
-	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,15 +31,15 @@ type IQueue struct {
 /*
 This function is for initializing the queues
 */
-func QueueFactory(queueName string, queueType string) *IQueue {
+func QueueFactory(conn *amqp.Connection, queueName string, queueType string) *IQueue {
 
 	myQueue := new(IQueue)
 	myQueue.name = queueName
 	myQueue.queueType = queueType
 
 	// To connect to the rabbitmq (message queue) server
-	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URI"))
-	failOnError(err, "Failed to connect to RabbitMQ")
+	//conn, err := amqp.Dial(os.Getenv("RABBITMQ_URI"))
+	//failOnError(err, "Failed to connect to RabbitMQ")
 	//defer conn.Close()
 
 	myQueue.channel, myQueue.err = conn.Channel()

@@ -51,9 +51,9 @@ func Close(client *mongo.Client, ctx context.Context,
 // be used to cancel context and resource
 // associated with it.
 func Connect(uri string) (*mongo.Client, context.Context, context.CancelFunc, error) {
-	mongoContext, mongoCancel := context.WithCancel(context.Background())
+	mongoContext, mongoCancel = context.WithCancel(context.Background())
 
-	mongoClient, mongoError := mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
+	mongoClient, mongoError = mongo.Connect(mongoContext, options.Client().ApplyURI(uri))
 	if mongoError != nil {
 		return nil, nil, nil, mongoError
 	}

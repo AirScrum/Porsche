@@ -75,12 +75,17 @@ func QueueFactory(conn *amqp.Connection, queueName string, queueType string) *IQ
 /*
 This function is for sending in queue
 */
-func SendToQueue(myQueue *IQueue, msg models.Message) {
-
+func SendToQueue(myQueue *IQueue, msg models.Message, conn *amqp.Connection) {
 	// To encode the msg object into array of bytes to be sent in the queue
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Check if the channel is closed and if so, try to reconnect
+	if myQueue.channel.IsClosed() {
+		myQueue.channel, myQueue.err = conn.Channel()
+		failOnError(myQueue.err, "["+myQueue.name+"]"+" - Failed to open"+myQueue.queueType+" Channel")
 	}
 
 	// Send to the queue

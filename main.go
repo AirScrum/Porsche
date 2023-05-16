@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -101,10 +101,10 @@ This is our main function
 */
 func main() {
 
-	err := godotenv.Load()
+	/*err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
-	}
+	}*/
 	// Connect to mongoDB
 	mongoClient, mongoContext, mongoCancel, mongoError := dbpackage.Connect(os.Getenv("MONGO_DB_URI"))
 	if mongoError != nil {
